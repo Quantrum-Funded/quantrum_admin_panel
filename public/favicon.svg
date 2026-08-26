@@ -1,0 +1,13 @@
+<!-- The Quantrum mark. Same geometry as src/components/Logo.jsx, with literal
+     values because a favicon cannot run JS to compute its dasharray.
+     30.258 + 4.3 = 34.558, exactly a quarter of the r=22 circumference
+     (138.230), so the four gaps land on the axes. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <mask id="c" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+    <rect x="0" y="0" width="100" height="100" fill="#fff"/>
+    <path d="M49 55 L76 83" stroke="#000" stroke-width="13"/>
+  </mask>
+  <circle cx="50" cy="47" r="22" fill="none" stroke="#f5f7f8" stroke-width="12.5"
+          stroke-dasharray="30.258 4.3" stroke-dashoffset="-2.15" mask="url(#c)"/>
+  <path d="M49 55 L74 81" stroke="#fa4f0c" stroke-width="9.5"/>
+</svg>
