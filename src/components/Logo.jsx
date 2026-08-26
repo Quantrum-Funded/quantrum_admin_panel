@@ -56,7 +56,7 @@ export function LogoMark({ size = 32, className = "", title }) {
         mask={`url(#${maskId})`}
       />
 
-      <path d="M49 55 L74 81" stroke="var(--primary, #fa4f0c)" strokeWidth="9.5" />
+      <path d="M49 55 L74 81" stroke="var(--brand, #fa4f0c)" strokeWidth="9.5" />
     </svg>
   );
 }

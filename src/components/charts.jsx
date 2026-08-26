@@ -5,18 +5,21 @@ import {
 } from "recharts";
 import { shortDay, num, money } from "../lib/format.js";
 
-const GRID = "#293139";
+const GRID = "#e9dece";
 
 /* One palette, used everywhere, so a colour means the same thing on every
-   chart in the app. */
+   chart in the app. Retuned for a white card: these are the paper-side
+   values, each ≥ 3:1 against #fff so a thin 2px series line is still legible.
+   The brand orange stays the first series — it is the one saturated note the
+   design allows, and a chart is where it earns its keep. */
 export const C = {
-  accent: "#fa4f0c",  /* brand orange */
-  cyan:   "#4c83ff",  /* --info */
-  green:  "#22c77a",  /* --profit */
-  red:    "#ff4d5d",  /* --loss */
-  amber:  "#f4b740",  /* --warning */
-  violet: "#ff8a4c",  /* a lighter tint of the brand, for a second series */
-  slate:  "#5e6871",
+  accent: "#fa4f0c",  /* brand orange — the primary series */
+  cyan:   "#3a5a7d",  /* --info, muted navy */
+  green:  "#2f6b4a",  /* --up */
+  red:    "#9b2c2c",  /* --down, oxblood */
+  amber:  "#96631a",  /* --warn */
+  violet: "#7a4a63",  /* plum, for a second brand-adjacent series */
+  slate:  "#8a7565",  /* taupe — the "everything else" bucket */
 };
 
 export const PIE_COLORS = [C.accent, C.cyan, C.green, C.amber, C.violet, C.red, C.slate];
@@ -29,7 +32,7 @@ function Tip({ active, payload, label, fmt }) {
       {payload.map((p) => (
         <div className="t-row" key={p.dataKey}>
           <span className="t-sw" style={{ background: p.color || p.fill }} />
-          {p.name}: <strong style={{ color: "#f5f7f8" }}>
+          {p.name}: <strong style={{ color: "var(--text)" }}>
             {fmt ? fmt(p.value, p.dataKey) : num(p.value)}
           </strong>
         </div>
@@ -66,6 +69,7 @@ export function AreaTrend({ data, series, height = 230, fmt }) {
             stroke={s.color}
             strokeWidth={2}
             fill={`url(#g-${s.key})`}
+            isAnimationActive={false}
           />
         ))}
       </AreaChart>
@@ -80,9 +84,10 @@ export function BarTrend({ data, series, height = 230, fmt }) {
         <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="day" tickFormatter={shortDay} minTickGap={26} {...axis} />
         <YAxis width={54} allowDecimals={false} {...axis} />
-        <Tooltip content={<Tip fmt={fmt} />} cursor={{ fill: "rgba(255,255,255,.03)" }} />
+        <Tooltip content={<Tip fmt={fmt} />} cursor={{ fill: "rgba(43,30,23,.05)" }} />
         {series.map((s) => (
-          <Bar key={s.key} dataKey={s.key} name={s.label} fill={s.color} radius={[3, 3, 0, 0]} />
+          <Bar key={s.key} dataKey={s.key} name={s.label} fill={s.color}
+               radius={[3, 3, 0, 0]} isAnimationActive={false} />
         ))}
       </BarChart>
     </ResponsiveContainer>
@@ -97,8 +102,8 @@ export function PnlTrend({ data, height = 230 }) {
         <CartesianGrid stroke={GRID} strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="day" tickFormatter={shortDay} minTickGap={26} {...axis} />
         <YAxis width={68} tickFormatter={(v) => money(v, { compact: true })} {...axis} />
-        <Tooltip content={<Tip fmt={(v) => money(v)} />} cursor={{ fill: "rgba(255,255,255,.03)" }} />
-        <Bar dataKey="realized_pnl" name="Realised P&L" radius={[3, 3, 0, 0]}>
+        <Tooltip content={<Tip fmt={(v) => money(v)} />} cursor={{ fill: "rgba(43,30,23,.05)" }} />
+        <Bar dataKey="realized_pnl" name="Realised P&L" radius={[3, 3, 0, 0]} isAnimationActive={false}>
           {data.map((d, i) => (
             <Cell key={i} fill={Number(d.realized_pnl) >= 0 ? C.green : C.red} />
           ))}
@@ -118,7 +123,7 @@ export function LineTrend({ data, series, height = 230, fmt }) {
         <Tooltip content={<Tip fmt={fmt} />} cursor={{ stroke: GRID }} />
         {series.map((s) => (
           <Line key={s.key} type="monotone" dataKey={s.key} name={s.label}
-                stroke={s.color} strokeWidth={2} dot={false} />
+                stroke={s.color} strokeWidth={2} dot={false} isAnimationActive={false} />
         ))}
       </LineChart>
     </ResponsiveContainer>
@@ -134,6 +139,7 @@ export function Donut({ data, nameKey, valueKey, height = 210 }) {
           <Pie
             data={data} dataKey={valueKey} nameKey={nameKey}
             innerRadius="58%" outerRadius="85%" paddingAngle={2} stroke="none"
+            isAnimationActive={false}
           >
             {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
           </Pie>
@@ -143,7 +149,7 @@ export function Donut({ data, nameKey, valueKey, height = 210 }) {
                 <div className="chart-tip">
                   <div className="t-row">
                     <span className="t-sw" style={{ background: payload[0].payload.fill }} />
-                    {payload[0].name}: <strong style={{ color: "#f5f7f8" }}>{num(payload[0].value)}</strong>
+                    {payload[0].name}: <strong style={{ color: "var(--text)" }}>{num(payload[0].value)}</strong>
                   </div>
                 </div>
               ) : null

@@ -5,7 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#080b0e" />
+    <meta name="theme-color" content="#2b1e17" />
+
+    <!--
+      Three faces, each with a job:
+        Fraunces        the headline figures and titles. A serif with tabular
+                        numerals makes a page of money read like a printed
+                        statement rather than a web app.
+        Instrument Sans the interface — labels, tables, controls.
+        JetBrains Mono  ids, timestamps, the wordmark, anything monospaced.
+
+      preconnect matters more than usual here: the fonts are on a second
+      origin, and without it the browser cannot open the TLS connection until
+      it has already parsed and fetched the CSS.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    />
+
     <title>Quantrum Admin</title>
   </head>
   <body>
