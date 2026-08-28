@@ -39,12 +39,52 @@ select 'FUNCTION' as section,
           ('admin_timeseries',      '02a_read_core.sql'),
           ('admin_recent_activity', '02b_activity.sql'),
           ('admin_trading_summary', '02c_trading.sql'),
-          ('admin_funnel',          '02c_trading.sql')
+          ('admin_funnel',          '02c_trading.sql'),
+          ('admin_user_search',     '04_user_filter.sql')
        ) as f(name, file)
   left join pg_catalog.pg_proc p
          on p.proname = f.name
         and p.pronamespace = 'public'::regnamespace
  order by f.file, f.name;
+
+-- 3b. Is the user filter installed? -------------------------------------------
+--     A function can exist and still be the OLD one. 04_user_filter.sql adds a
+--     p_user_id argument to five of them, and the panel's build that has a
+--     user picker in the header calls them with it. If these say MISSING, the
+--     picker will find people and then every tile will fail to load.
+select 'USER FILTER' as section,
+       f.name,
+       case when p.oid is null then '⬜ function not installed at all'
+            when p.proargnames @> array['p_user_id'] then '✅ takes p_user_id'
+            else '❌ OLD version — run 04_user_filter.sql' end as status
+  from (values
+          ('admin_overview'), ('admin_timeseries'), ('admin_recent_activity'),
+          ('admin_trading_summary'), ('admin_funnel')
+       ) as f(name)
+  left join pg_catalog.pg_proc p
+         on p.proname = f.name
+        and p.pronamespace = 'public'::regnamespace
+ order by f.name;
+
+-- 3c. Can every table say which user a row belongs to? ------------------------
+--     What 04_user_filter.sql checks before it installs anything. Two of these
+--     columns nothing else in the dashboard reads, so this is the one place
+--     they are verified.
+select 'USER COLUMNS' as section,
+       t.tbl || '.' || t.col as name,
+       case when c.column_name is null
+            then '❌ MISSING — the user filter cannot be installed'
+            else '✅ present' end as status
+  from (values
+          ('users','id'), ('user_login_events','user_id'), ('orders','user_id'),
+          ('positions','user_id'), ('payments','user_id'),
+          ('challenges','user_id'), ('demo_trials','user_id')
+       ) as t(tbl, col)
+  left join information_schema.columns c
+         on c.table_schema = 'public'
+        and c.table_name   = t.tbl
+        and c.column_name  = t.col
+ order by t.tbl;
 
 -- 4. Can `authenticated` actually call them? ----------------------------------
 --    A function that exists but was never granted fails with "permission

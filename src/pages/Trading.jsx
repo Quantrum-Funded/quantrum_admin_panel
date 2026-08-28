@@ -4,22 +4,33 @@ import { Card, Table, Stat, Loading, StatusChip, Chip } from "../components/ui.j
 import { PnlTrend, BarTrend, Donut, Legend, C } from "../components/charts.jsx";
 import { num, money, signedMoney, pct, dateTime, ago } from "../lib/format.js";
 
-export default function Trading({ days, includeDemo, refreshKey }) {
-  const o  = useRpc("admin_overview",        { p_include_demo: includeDemo }, [refreshKey]);
-  const ts = useRpc("admin_timeseries",      { p_days: days, p_include_demo: includeDemo }, [refreshKey]);
-  const t  = useRpc("admin_trading_summary", { p_limit: 10, p_include_demo: includeDemo }, [refreshKey]);
+export default function Trading({ days, includeDemo, refreshKey, userId }) {
+  const o  = useRpc("admin_overview",        { p_include_demo: includeDemo, p_user_id: userId }, [refreshKey]);
+  const ts = useRpc("admin_timeseries",      { p_days: days, p_include_demo: includeDemo, p_user_id: userId }, [refreshKey]);
+  const t  = useRpc("admin_trading_summary", { p_limit: 10, p_include_demo: includeDemo, p_user_id: userId }, [refreshKey]);
 
   const d = o.data;
   const series = ts.data ?? [];
   const s = t.data;
+
+  // "People trading: 1" is not worth a tile. Filtered, that slot shows the one
+  // number a per-trader view is actually opened for — their win rate, which
+  // the summary already computed for the top-traders table.
+  const one = Boolean(userId);
+  const mine = one ? s?.top_traders?.[0] : null;
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
       <div className="grid k5">
         <Stat label="Trades placed" value={d ? num(d.orders_filled) : "—"} tone="violet"
               foot={d ? `${num(d.orders_today)} today` : ""} />
-        <Stat label="People trading" value={d ? num(d.traders_total) : "—"} tone="info"
-              foot={d ? `${num(d.traders_today)} today` : ""} />
+        {one ? (
+          <Stat label="Win rate" value={mine?.win_rate_pct == null ? "—" : pct(mine.win_rate_pct)} tone="info"
+                foot={mine ? `${num(mine.closing_orders)} closing orders` : "no closing orders yet"} />
+        ) : (
+          <Stat label="People trading" value={d ? num(d.traders_total) : "—"} tone="info"
+                foot={d ? `${num(d.traders_today)} today` : ""} />
+        )}
         <Stat
           label="Net realised P&L"
           value={d ? signedMoney(d.realized_pnl) : "—"}
@@ -51,11 +62,13 @@ export default function Trading({ days, includeDemo, refreshKey }) {
       </div>
 
       <div className="grid wide-left">
-        <Card title="Top traders" note="Ranked by realised P&L" pad={false}>
+        <Card title={one ? "This trader" : "Top traders"}
+              note={one ? "The same row everyone else is ranked on" : "Ranked by realised P&L"}
+              pad={false}>
           {t.loading ? <div className="card-body"><Loading rows={5} height={34} /></div> : (
             <Table
               rows={s?.top_traders ?? []}
-              empty={<>Nobody has filled an order yet.</>}
+              empty={one ? <>This account has never filled an order.</> : <>Nobody has filled an order yet.</>}
               columns={[
                 { key: "email", label: "Trader", strong: true,
                   render: (r) => r.email || r.name || <span className="mono">{r.user_id?.slice(0, 12)}…</span> },
@@ -93,7 +106,7 @@ export default function Trading({ days, includeDemo, refreshKey }) {
       </div>
 
       <div className="grid k2">
-        <Card title="Most traded contracts" note="By number of fills" pad={false}>
+        <Card title={one ? "What they trade" : "Most traded contracts"} note="By number of fills" pad={false}>
           {t.loading ? <div className="card-body"><Loading rows={5} height={34} /></div> : (
             <Table
               rows={s?.symbols ?? []}
@@ -116,7 +129,8 @@ export default function Trading({ days, includeDemo, refreshKey }) {
           )}
         </Card>
 
-        <Card title="Why orders get rejected" note="The rule engine's own words" pad={false}>
+        <Card title={one ? "Why their orders get rejected" : "Why orders get rejected"}
+              note="The rule engine's own words" pad={false}>
           {t.loading ? <div className="card-body"><Loading rows={5} height={34} /></div> : (
             <Table
               rows={s?.rejections ?? []}
@@ -131,7 +145,8 @@ export default function Trading({ days, includeDemo, refreshKey }) {
         </Card>
       </div>
 
-      <Card title="Open positions right now" note="Live exposure across every account" pad={false}>
+      <Card title="Open positions right now"
+            note={one ? "What this account has open" : "Live exposure across every account"} pad={false}>
         {t.loading ? <div className="card-body"><Loading rows={4} height={34} /></div> : (
           <Table
             rows={s?.open_positions ?? []}

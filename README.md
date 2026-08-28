@@ -14,7 +14,7 @@ trading platform exactly as it is.
 
 ### 1. Run the SQL
 
-Supabase dashboard → **SQL Editor**, and run these four in order. Each is a
+Supabase dashboard → **SQL Editor**, and run these five in order. Each is a
 few KB, self-contained, safe to re-run, and prints what it created:
 
 | File | What it adds |
@@ -23,8 +23,9 @@ few KB, self-contained, safe to re-run, and prints what it created:
 | `sql/02a_read_core.sql` | Overview page |
 | `sql/02b_activity.sql` | The sign-in feed (Overview + Logins) |
 | `sql/02c_trading.sql` | Trading + Funnel pages |
+| `sql/04_user_filter.sql` | The user picker in the header, and `p_user_id` on the five reads |
 
-**Why four small files and not one big one.** There is a `sql/RUN_THIS.sql`
+**Why five small files and not one big one.** There is a `sql/RUN_THIS.sql`
 that concatenates all of them, but it is ~50 KB, and a paste that long can be
 truncated on the way into the editor. A truncated paste **fails silently**: the
 statements that did arrive succeed and commit, so the editor reports no error
@@ -79,12 +80,49 @@ recreate it.
 | **Trading** | Trades and P&L by day, top traders, most-traded contracts, why orders get rejected, open positions, latest orders |
 | **Funnel** | Signed up → came back → started demo → placed a trade → paid, plus provider / account-type / country splits |
 
-Two controls in the header apply to every page:
+Three controls in the header apply to every page:
 
+- **All users** — the user picker. Leave it alone for platform totals, or pick
+  somebody and every tile, chart and table narrows to them. See below.
 - **Include demo accounts** — off by default. The demo seeds six *fabricated*
   daily-P&L rows per trial that nobody traded, so leaving them in would quietly
   corrupt every average. Turn it on to look at demo activity deliberately.
 - **7d / 30d / 90d** — the window every chart uses.
+
+---
+
+## Looking at one person
+
+The panel's numbers are platform totals, which answer "how are we doing" and
+are no help at all with the question ops actually gets: *what happened with
+this person?* Before the picker, that meant scrolling the activity log with a
+finger on the screen.
+
+Click **All users** in the header, type an email, a name or a user id — or type
+nothing, because it opens on the twenty people who signed in most recently,
+which is usually where the answer is. Pick somebody and:
+
+- a strip appears under the header naming them, with their chips (live/trial,
+  tester, paid, country, provider) and their joined / last-seen / sign-ins /
+  trades / realised P&L. It stays on screen, so a screenshot of any page says
+  who it is about;
+- **Overview** swaps its five headline tiles for sign-ins, last seen, trades,
+  realised P&L and what they paid;
+- **Logins** becomes their timeline — every sign-in, demo start, conversion and
+  settings save, in order;
+- **Trading** becomes their fills, their win rate, their symbols, their
+  rejection reasons and their open positions;
+- **Funnel** stops being a funnel and becomes five yes/no rows: which of the
+  steps they took, and the first one they did not.
+
+“Show everyone” on the strip, or the ✕ next to the picker, puts it back.
+
+Two things deliberately go blank rather than wrong while a person is picked:
+**waitlist** and **AI questions**. The waitlist is people who have *not* signed
+up, so it cannot belong to one of them, and showing a platform total next to
+five personal ones is how a screenshot ends up in the wrong meeting.
+
+**It is still read-only.** The picker searches; it does not edit anybody.
 
 ---
 
@@ -182,10 +220,11 @@ admin-panel/
   sql/02a_read_core.sql         Overview
   sql/02b_activity.sql          the sign-in feed
   sql/02c_trading.sql           Trading + Funnel
-  sql/RUN_THIS.sql              all four concatenated (~40 KB — see the warning)
+  sql/04_user_filter.sql        the user picker + p_user_id on the five reads
+  sql/RUN_THIS.sql              all five concatenated (~50 KB — see the warning)
   src/supabase.js               client + the single rpc() helper
   src/App.jsx                   auth gate, sidebar, global filters
   src/pages/                    Overview, Activity, Trading, Funnel
-  src/components/               shared UI, charts, the logo
+  src/components/               shared UI, charts, the logo, the user picker
   src/lib/format.js             money / dates / IST / "3 minutes ago"
 ```

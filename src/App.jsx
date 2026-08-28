@@ -6,6 +6,7 @@ import {
 } from "./components/icons.jsx";
 import { Wordmark, LogoMark } from "./components/Logo.jsx";
 import { Segmented } from "./components/ui.jsx";
+import UserFilter, { UserStrip } from "./components/UserFilter.jsx";
 import Overview from "./pages/Overview.jsx";
 import Activity from "./pages/Activity.jsx";
 import Trading from "./pages/Trading.jsx";
@@ -30,6 +31,12 @@ export default function App() {
   // so a number can never mean one thing on one card and another elsewhere.
   const [includeDemo, setIncludeDemo] = useState(false);
   const [days, setDays] = useState(30);
+
+  // The third global filter: one person, or nobody in particular. Global for
+  // the same reason the demo toggle is — a number that meant "this trader" on
+  // one page and "the platform" on the next would be worse than no filter.
+  // Null is everybody, which is what every page did before this existed.
+  const [user, setUser] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -87,6 +94,7 @@ export default function App() {
               ["02a_read_core.sql", "Overview"],
               ["02b_activity.sql", "the sign-in feed"],
               ["02c_trading.sql", "Trading + Funnel"],
+              ["04_user_filter.sql", "the user picker in the header"],
             ].map(([file, what]) => (
               <li key={file} style={{ marginBottom: 5 }}>
                 <span className="mono">{file}</span>
@@ -163,7 +171,7 @@ export default function App() {
   }
 
   const current = PAGES.find((p) => p.key === page) ?? PAGES[0];
-  const shared = { days, includeDemo, refreshKey };
+  const shared = { days, includeDemo, refreshKey, userId: user?.user_id ?? null };
 
   return (
     <div className="shell">
@@ -207,6 +215,8 @@ export default function App() {
           </div>
           <div className="spacer" />
 
+          <UserFilter value={user} onChange={setUser} />
+
           <label className="toggle" title="The demo seeds fabricated P&L days that nobody traded. Off by default.">
             <input
               type="checkbox"
@@ -232,6 +242,10 @@ export default function App() {
         </header>
 
         <main className="content">
+          {user && (
+            <UserStrip user={user} refreshKey={refreshKey} onClear={() => setUser(null)} />
+          )}
+
           {page === "overview" && <Overview {...shared} />}
           {page === "activity" && <Activity {...shared} />}
           {page === "trading"  && <Trading {...shared} />}

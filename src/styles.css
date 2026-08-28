@@ -490,6 +490,9 @@ td.r, th.r { text-align: right; }
   min-width: 34px;
 }
 .funnel-pct { width: 56px; flex: 0 0 56px; text-align: right; font-size: 12px; color: var(--text-mute); }
+/* Filtered to one person a step either happened or it did not, and a full-width
+   chestnut bar for "no" would read as the opposite of what it says. */
+.funnel-fill.empty { background: var(--surface-3); }
 
 /* --------------------------------------------------------------- drawer --- */
 .drawer-backdrop {
@@ -527,6 +530,118 @@ td.r, th.r { text-align: right; }
 }
 .tl-body { flex: 1; min-width: 0; }
 .tl-when { font-size: 11.5px; color: var(--text-mute); }
+
+/* ---------------------------------------------------------- user filter --- */
+/* The third global control, next to the demo toggle and the day window. It is
+   a search rather than a <select> because the list is the users table, which
+   has no ceiling — and because the person you are being asked about was
+   almost always here recently, which is the order the results come back in. */
+.userfilter { position: relative; display: inline-flex; gap: 6px; }
+
+.btn.picker { max-width: 250px; }
+.picker-label {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Filtered is a state the whole screen is in, so the control that caused it
+   does not get to look idle. */
+.btn.picker.on {
+  background: var(--accent-soft);
+  border-color: var(--border-2);
+  color: var(--text);
+  font-weight: 600;
+}
+.btn.picker-clear { padding: 8px 9px; }
+
+.pop {
+  position: absolute; top: calc(100% + 7px); right: 0;
+  width: 380px; max-width: calc(100vw - 28px);
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 40;
+  overflow: hidden;
+  animation: pop-in .12s ease;
+}
+@keyframes pop-in { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: none } }
+
+.pop-search {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.pop-search input {
+  flex: 1; min-width: 0;
+  background: none; border: 0; outline: none;
+  font-family: inherit; font-size: 13px; color: var(--text);
+}
+.pop-search input::placeholder { color: var(--text-mute); }
+
+/* Capped and scrolled: twenty results must not push the popover past the fold
+   on a laptop, and the search box has to stay reachable while you read them. */
+.pop-list { max-height: 340px; overflow-y: auto; }
+
+.pop-item {
+  display: block; width: 100%; text-align: left;
+  padding: 9px 13px;
+  background: none; border: 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.pop-item:last-child { border-bottom: 0; }
+.pop-item.cursor { background: var(--surface-2); }
+.pop-item.picked { background: var(--accent-soft); }
+.pop-name {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pop-sub {
+  font-size: 11.5px; color: var(--text-mute); margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pop-msg { padding: 14px 13px; font-size: 12.5px; color: var(--text-mute); }
+.pop-msg.err { color: var(--down); }
+.pop-foot {
+  padding: 9px 13px; font-size: 11px; color: var(--text-mute);
+  border-top: 1px solid var(--border); background: var(--surface-2);
+}
+
+/* ----------------------------------------------------------- user strip --- */
+/* The whole point of the filter. Every tile behind this strip looks exactly
+   like a platform total, so the screen has to say whose numbers these are —
+   permanently, and in the screenshot. */
+.userstrip {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: var(--accent-soft);
+  border: 1px solid var(--border-2);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius);
+}
+.userstrip-main { flex: 1; min-width: 0; }
+.userstrip-top {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.userstrip-eyebrow {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--primary);
+}
+.userstrip-name {
+  font-size: 14.5px; color: var(--text); overflow-wrap: anywhere;
+}
+.userstrip-facts {
+  display: flex; flex-wrap: wrap; gap: 4px 14px;
+  margin-top: 5px; font-size: 11.5px; color: var(--text-dim);
+}
+.userstrip-facts .mono { font-size: 11px; }
+
+@media (max-width: 720px) {
+  .userstrip { flex-direction: column; align-items: flex-start; }
+  .btn.picker { max-width: 150px; }
+  .pop { right: auto; left: 0; }
+}
 
 /* --------------------------------------------------------------- misc ----- */
 /* Sweeps a highlight with transform instead of animating background-position.
