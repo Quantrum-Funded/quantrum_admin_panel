@@ -431,6 +431,44 @@ td.r, th.r { text-align: right; }
   box-shadow: 0 1px 2px rgba(74,54,42,.10);
 }
 
+/* ---------------------------------------------------------- feed filters -- */
+/* The Event / User row that sits between a card head and its table. It uses
+   the table-head fill so it reads as part of the table it acts on rather than
+   as a second card, and shares that head's one-pixel rule. */
+.filterbar {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 9px 14px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-2);
+}
+.card-head + .filterbar { margin-top: 13px; }
+
+.filter { display: inline-flex; align-items: center; gap: 7px; min-width: 0; cursor: pointer; }
+.filter > span {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .075em;
+  text-transform: uppercase; color: var(--text-mute);
+  white-space: nowrap;
+}
+/* max-width so a long email in the User list cannot stretch the strip wider
+   than the card and start a horizontal scroll. */
+.filter select { padding: 6px 9px; font-size: 12.5px; max-width: 250px; }
+
+.filter-count { font-size: 11.5px; color: var(--text-mute); white-space: nowrap; }
+/* The one thing an Apply button owes the reader: saying, while a dropdown sits
+   on a value the table is not obeying yet, that the table is not obeying it. */
+.filter-dirty { color: var(--primary); font-weight: 600; }
+.btn.sm { padding: 6px 10px; font-size: 12.5px; }
+
+/* Event cell — the chip, and the ×4 when four identical events were merged
+   into this row. Tabular figures so a column of them lines up. */
+.eventcell { display: inline-flex; align-items: center; gap: 6px; }
+.repeat {
+  font-size: 11px; font-weight: 700; color: var(--text-mute);
+  font-variant-numeric: tabular-nums; cursor: help;
+}
+
 .toggle {
   display: inline-flex; align-items: center; gap: 8px;
   font-size: 12.5px; color: var(--text-dim); cursor: pointer; user-select: none;

@@ -71,9 +71,9 @@ export function Loading({ rows = 4, height = 62 }) {
   );
 }
 
-export function Table({ columns, rows, onRowClick, empty }) {
+export function Table({ columns, rows, onRowClick, empty, emptyTitle = "Nothing here yet" }) {
   if (!rows || rows.length === 0) {
-    return <Empty title="Nothing here yet">{empty}</Empty>;
+    return <Empty title={emptyTitle}>{empty}</Empty>;
   }
   return (
     <div className="table-wrap">

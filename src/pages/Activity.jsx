@@ -2,7 +2,7 @@ import React from "react";
 import { useRpc } from "../lib/useRpc.js";
 import { Card, Table, Chip, Stat, Loading } from "../components/ui.jsx";
 import { AreaTrend, BarTrend, C } from "../components/charts.jsx";
-import { KindChip } from "./Overview.jsx";
+import { useFeedFilter, FeedFilters, EventCell, noMatch } from "../components/FeedFilters.jsx";
 import { num, ago, dateTime, provider } from "../lib/format.js";
 
 /**
@@ -16,7 +16,10 @@ import { num, ago, dateTime, provider } from "../lib/format.js";
 export default function Activity({ days, refreshKey, userId }) {
   const o  = useRpc("admin_overview",        { p_include_demo: false, p_user_id: userId }, [refreshKey]);
   const ts = useRpc("admin_timeseries",      { p_days: days, p_include_demo: false, p_user_id: userId }, [refreshKey]);
-  const ac = useRpc("admin_recent_activity", { p_limit: 100, p_user_id: userId }, [refreshKey]);
+  // 200 is the function's ceiling. This is the page somebody opens to answer
+  // "when did they last sign in" with the Event and User filters, so it asks
+  // for as deep a page as the database will hand over.
+  const ac = useRpc("admin_recent_activity", { p_limit: 200, p_user_id: userId }, [refreshKey]);
 
   const d = o.data;
   const series = ts.data ?? [];
@@ -25,6 +28,12 @@ export default function Activity({ days, refreshKey, userId }) {
   // sign-ins is the number worth reading. So the tiles swap which of the two
   // is the headline rather than showing a boolean in a big font.
   const one = Boolean(userId);
+
+  // The Event / User / Sort dropdowns above the log. They narrow and reorder
+  // what was fetched, in the browser, and leave the tiles and charts above them
+  // alone: those are the period's totals and would stop matching their own
+  // titles if a dropdown could edit them.
+  const f = useFeedFilter(ac.data);
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
@@ -76,14 +85,17 @@ export default function Activity({ days, refreshKey, userId }) {
         title="Activity log"
         note={one
           ? "Every sign-in and lifecycle event for this account, newest first"
-          : "Every sign-in and lifecycle event, newest first"}
+          : "Sign-ins and lifecycle events, newest 200, filterable below"}
         pad={false}
       >
         {ac.error && <div className="card-body"><div className="alert err">{ac.error}</div></div>}
         {ac.loading ? <div className="card-body"><Loading rows={8} height={34} /></div> : (
+          <>
+          <FeedFilters f={f} hideUser={one} />
           <Table
-            rows={ac.data ?? []}
-            empty={one
+            rows={f.rows}
+            emptyTitle={f.active ? "No events match" : undefined}
+            empty={f.active ? noMatch(f) : one
               ? <>Nothing recorded for this account. Login history starts from the
                  moment <code>01_admin_foundation.sql</code> was run.</>
               : <>Nothing recorded yet. Login history starts from the moment{" "}
@@ -92,7 +104,7 @@ export default function Activity({ days, refreshKey, userId }) {
             columns={[
               { key: "email", label: "User", strong: true,
                 render: (r) => r.email || r.name || <span className="mono">{r.user_id?.slice(0, 14)}…</span> },
-              { key: "kind",     label: "Event",  render: (r) => <KindChip kind={r.kind} /> },
+              { key: "kind",     label: "Event",  render: (r) => <EventCell row={r} /> },
               { key: "provider", label: "Method", render: (r) => provider(r.provider) },
               { key: "account_type", label: "Account",
                 render: (r) => (
@@ -105,6 +117,7 @@ export default function Activity({ days, refreshKey, userId }) {
               { key: "ago", label: "", align: "right", render: (r) => <span className="dim">{ago(r.at)}</span> },
             ]}
           />
+          </>
         )}
       </Card>
 

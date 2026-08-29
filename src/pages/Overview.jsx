@@ -2,18 +2,28 @@ import React from "react";
 import { useRpc } from "../lib/useRpc.js";
 import { Card, Stat, Loading, Table, Chip, Empty } from "../components/ui.jsx";
 import { AreaTrend, BarTrend, PnlTrend, C } from "../components/charts.jsx";
+import { useFeedFilter, FeedFilters, EventCell, noMatch } from "../components/FeedFilters.jsx";
 import { money, signedMoney, num, ago, provider, dateTime } from "../lib/format.js";
 
 export default function Overview({ days, includeDemo, refreshKey, userId }) {
   const o  = useRpc("admin_overview",       { p_include_demo: includeDemo, p_user_id: userId }, [refreshKey]);
   const ts = useRpc("admin_timeseries",     { p_days: days, p_include_demo: includeDemo, p_user_id: userId }, [refreshKey]);
-  const ac = useRpc("admin_recent_activity",{ p_limit: userId ? 40 : 12, p_user_id: userId }, [refreshKey]);
+  // Deeper than the card draws on purpose. The feed shows the newest handful,
+  // but the Event filter above it has to be able to find the one `paid` event
+  // in a page of sign-ins — filtering twelve rows would mostly find nothing.
+  const ac = useRpc("admin_recent_activity",{ p_limit: 80, p_user_id: userId }, [refreshKey]);
 
   // With a filter on, half these tiles would read 0 or 1 and mean nothing —
   // "active today: 1" is not a statistic, it is a yes. So the front page asks
   // a different set of questions about one person than it does about all of
   // them, rather than showing the same five tiles with the life taken out.
   const one = Boolean(userId);
+
+  // Filtered, the card is that person's whole timeline and shows more of it.
+  // capFiltered is the same idea one step further: unfiltered this card is a
+  // glance and twelve rows is the right length, but somebody who has just
+  // asked for every `paid` event wants every one it found, not twelve of them.
+  const f = useFeedFilter(ac.data, { cap: one ? 40 : 12, capFiltered: 60 });
 
   if (o.error) {
     return (
@@ -200,15 +210,18 @@ export default function Overview({ days, includeDemo, refreshKey, userId }) {
         right={<span className="card-note">{dateTime(d.generated_at)}</span>}
       >
         {ac.loading ? <div className="card-body"><Loading rows={4} height={34} /></div> : (
+          <>
+          <FeedFilters f={f} hideUser={one} />
           <Table
-            rows={ac.data ?? []}
-            empty={one
+            rows={f.rows}
+            emptyTitle={f.active ? "No events match" : undefined}
+            empty={f.active ? noMatch(f) : one
               ? <>Nothing recorded for this account since login tracking was switched on.</>
               : <>Nobody has signed in since login tracking was switched on.</>}
             columns={[
               { key: "email", label: "User", strong: true,
                 render: (r) => r.email || r.name || <span className="mono">{r.user_id?.slice(0, 12)}…</span> },
-              { key: "kind", label: "Event", render: (r) => <KindChip kind={r.kind} /> },
+              { key: "kind", label: "Event", render: (r) => <EventCell row={r} /> },
               { key: "provider", label: "Signed in with", render: (r) => provider(r.provider) },
               { key: "account_type", label: "Type",
                 render: (r) => (
@@ -219,6 +232,7 @@ export default function Overview({ days, includeDemo, refreshKey, userId }) {
               { key: "at", label: "When", align: "right", render: (r) => ago(r.at) },
             ]}
           />
+          </>
         )}
       </Card>
     </div>
@@ -234,18 +248,4 @@ function Row({ label, value, tone }) {
             style={{ fontWeight: 600, fontSize: 14 }}>{value}</span>
     </div>
   );
-}
-
-export function KindChip({ kind }) {
-  const map = {
-    login:        ["blue",   "signed in"],
-    signup:       ["green",  "new account"],
-    demo_start:   ["amber",  "started demo"],
-    converted:    ["violet", "paid"],
-    account_type: ["grey",   "type changed"],
-    tester:       ["violet", "tester granted"],
-    settings:     ["grey",   "settings saved"],
-  };
-  const [tone, label] = map[kind] ?? ["grey", kind];
-  return <Chip tone={tone}>{label}</Chip>;
 }
