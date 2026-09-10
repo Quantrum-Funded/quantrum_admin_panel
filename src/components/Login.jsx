@@ -33,7 +33,7 @@ export default function Login() {
           <div className="alert err">
             Create <code>admin-panel/.env</code> with <code>VITE_SUPABASE_URL</code> and{" "}
             <code>VITE_SUPABASE_ANON_KEY</code>, then restart <code>npm run dev</code>.
-            There is an <code>.env.example</code> to copy.
+            For hosted deployments, set these variables in the build environment and redeploy.
           </div>
         </div>
       </div>

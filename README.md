@@ -72,9 +72,9 @@ npm install
 npm run dev          # http://localhost:5273
 ```
 
-`.env` already holds the Supabase URL and anon key (copied from
-`Quantrum_backend/.env`). `.env.example` is the template if you need to
-recreate it.
+For local development, create an untracked `.env` file containing
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Environment files and the
+local `.env.example` are excluded from Git.
 
 ---
 
@@ -216,6 +216,9 @@ Netlify, an S3 bucket. There is no server component.
 
 Connect the hosting project to `Quantrum-Funded/quantrum_admin_panel` and deploy
 the `main` branch using `npm run build` with `dist` as the output directory.
+Provide `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the build
+environment through Cloudflare's variables settings. Vite embeds these values
+at build time, so rebuild and redeploy after changing them.
 Configure `admin.quantrumfunded.com` as the custom domain in the hosting
 provider and add the DNS records it supplies. The canonical URL in
 `index.html` identifies this domain; it does not configure hosting or DNS.
