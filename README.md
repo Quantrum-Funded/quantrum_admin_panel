@@ -18,6 +18,9 @@ trading platform exactly as it is.
 
 ### 1. Run the SQL
 
+SQL scripts are kept locally and excluded from Git. For a fresh clone, obtain
+the scripts from the project owner before following this setup step.
+
 Supabase dashboard → **SQL Editor**, and run these five in order. Each is a
 few KB, self-contained, safe to re-run, and prints what it created:
 
