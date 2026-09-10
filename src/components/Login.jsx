@@ -47,7 +47,7 @@ export default function Login() {
           <Wordmark size={34} sub="Admin dashboard" />
         </div>
 
-        <h2>Sign in</h2>
+        <h2>Admin sign in</h2>
         <p className="sub">Internal use only. Ask an owner to add your account.</p>
 
         {err && <div className="alert err">{err}</div>}

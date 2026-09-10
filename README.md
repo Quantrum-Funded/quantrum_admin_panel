@@ -1,5 +1,9 @@
 # Quantrum Admin Panel
 
+Repository: https://github.com/Quantrum-Funded/quantrum_admin_panel
+
+Production domain: https://admin.quantrumfunded.com/
+
 A read-only dashboard over the Quantrum Supabase database, for the people who
 need the numbers but should never need to write SQL.
 
@@ -206,6 +210,12 @@ The dashboard labels these in place; they are collected here for reference.
 
 `npm run build` produces a static `dist/`. Host it anywhere — Cloudflare Pages,
 Netlify, an S3 bucket. There is no server component.
+
+Connect the hosting project to `Quantrum-Funded/quantrum_admin_panel` and deploy
+the `main` branch using `npm run build` with `dist` as the output directory.
+Configure `admin.quantrumfunded.com` as the custom domain in the hosting
+provider and add the DNS records it supplies. The canonical URL in
+`index.html` identifies this domain; it does not configure hosting or DNS.
 
 Because it is a plain static site protected by a login, put it behind
 Cloudflare Access or an equivalent if you want a second lock on the door.
