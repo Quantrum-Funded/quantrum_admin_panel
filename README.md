@@ -32,6 +32,11 @@ few KB, self-contained, safe to re-run, and prints what it created:
 | `sql/02c_trading.sql` | Trading + Funnel pages |
 | `sql/04_user_filter.sql` | The user picker in the header, and `p_user_id` on the five reads |
 
+To show individual waitlist leads on Overview, run
+`db/admin_waitlist_leads.sql` in the Supabase SQL Editor after those five files.
+It adds a read-only, admin-gated function for the `public.waitlist` table and
+can be safely run again. The Overview count still comes from `admin_overview`.
+
 **Why five small files and not one big one.** There is a `sql/RUN_THIS.sql`
 that concatenates all of them, but it is ~50 KB, and a paste that long can be
 truncated on the way into the editor. A truncated paste **fails silently**: the
@@ -82,7 +87,7 @@ local `.env.example` are excluded from Git.
 
 | Page | What is on it |
 |---|---|
-| **Overview** | Total users, active today / this week / this month, trades today, revenue, the sign-in and trading charts, live state, and the latest sign-ins |
+| **Overview** | Total users, active today / this week / this month, trades today, revenue, waitlist count and leads, the sign-in and trading charts, live state, and the latest sign-ins |
 | **Logins** | DAU / WAU / MAU, sign-ins per day, new accounts per day, and the full activity log |
 | **Trading** | Trades and P&L by day, top traders, most-traded contracts, why orders get rejected, open positions, latest orders |
 | **Funnel** | Signed up → came back → started demo → placed a trade → paid, plus provider / account-type / country splits |
@@ -238,6 +243,7 @@ admin-panel/
   sql/02c_trading.sql           Trading + Funnel
   sql/04_user_filter.sql        the user picker + p_user_id on the five reads
   sql/RUN_THIS.sql              all five concatenated (~50 KB — see the warning)
+  db/admin_waitlist_leads.sql   admin-gated waitlist detail read
   src/supabase.js               client + the single rpc() helper
   src/App.jsx                   auth gate, sidebar, global filters
   src/pages/                    Overview, Activity, Trading, Funnel

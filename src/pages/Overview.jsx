@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useRpc } from "../lib/useRpc.js";
 import { Card, Stat, Loading, Table, Chip, Empty } from "../components/ui.jsx";
 import { AreaTrend, BarTrend, PnlTrend, C } from "../components/charts.jsx";
@@ -114,6 +114,16 @@ export default function Overview({ days, includeDemo, refreshKey, userId }) {
         )}
       </div>
 
+      {!one && (
+        <Card title="Waitlist" note="All time">
+          <div className="waitlist-summary">
+            <div className="waitlist-count num">{d.waitlist_total == null ? "—" : num(d.waitlist_total)}</div>
+            <div className="waitlist-description">People added to the waitlist</div>
+            <a className="waitlist-jump" href="#waitlist-leads">View people ↓</a>
+          </div>
+        </Card>
+      )}
+
       {/* --- the charts ----------------------------------------------------- */}
       <div className="grid wide-left">
         <Card
@@ -194,10 +204,8 @@ export default function Overview({ days, includeDemo, refreshKey, userId }) {
               tone={Number(d.realized_pnl) >= 0 ? "up" : "down"}
               foot={`Across ${num(d.traders_total)} traders`}
             />
-            {/* Null, not zero, when a person is picked: the waitlist is people
-                who have not signed up, so it cannot belong to one of them. */}
-            <Stat label="Waitlist" value={num(d.waitlist_total)}
-                  foot={`${num(d.ai_questions)} AI questions asked`} tone="info" />
+            <Stat label="AI questions" value={num(d.ai_questions)} tone="info"
+                  foot="Asked across the platform" />
           </>
         )}
       </div>
@@ -235,8 +243,84 @@ export default function Overview({ days, includeDemo, refreshKey, userId }) {
           </>
         )}
       </Card>
+
+      {!one && <WaitlistSection total={d.waitlist_total} refreshKey={refreshKey} />}
     </div>
   );
+}
+
+const WAITLIST_PAGE_SIZE = 25;
+
+function WaitlistSection({ total, refreshKey }) {
+  const [page, setPage] = useState(0);
+  const leads = useRpc("admin_waitlist_leads", {
+    p_limit: WAITLIST_PAGE_SIZE,
+    p_offset: page * WAITLIST_PAGE_SIZE,
+  }, [refreshKey]);
+  const rows = leads.data ?? [];
+  const hasNext = rows.length === WAITLIST_PAGE_SIZE &&
+    (total == null || (page + 1) * WAITLIST_PAGE_SIZE < Number(total));
+
+  return (
+    <section id="waitlist-leads" className="waitlist-section">
+    <Card title="Waitlist people" note="Newest first · select a person to see their answers" pad={false}>
+      {leads.error ? (
+        <div className="card-body"><div className="alert err">Could not load waitlist details. {leads.error}</div></div>
+      ) : leads.loading ? (
+        <div className="card-body"><Loading rows={3} height={52} /></div>
+      ) : (
+        <>
+          {rows.length === 0 ? <Empty title="No waitlist entries yet">New waitlist signups will appear here.</Empty> : (
+            <div className="waitlist-list">
+              <div className="waitlist-list-head" aria-hidden="true">
+                <span>Person</span><span>Interest</span><span>Would pay</span><span>Added</span><span />
+              </div>
+              {rows.map((r) => (
+                <details className="waitlist-person" key={r.id}>
+                  <summary className="waitlist-person-summary">
+                    <span className="waitlist-person-contact">
+                      <strong>{r.name || r.email || r.phone || "Unnamed lead"}</strong>
+                      <span>{[r.email && r.name ? r.email : null, r.phone].filter(Boolean).join(" · ") || "No contact details"}</span>
+                    </span>
+                    <span className="waitlist-person-interest">{[r.interest_category, r.interest_tier].filter(Boolean).join(" · ") || "—"}</span>
+                    <span className="waitlist-person-pay"><Answer value={r.would_pay_fee} /></span>
+                    <span className="waitlist-person-date">{dateTime(r.created_at)}</span>
+                    <span className="waitlist-person-chevron" aria-hidden="true">⌄</span>
+                  </summary>
+                  <div className="waitlist-person-extra">
+                    <div><span>Email</span><strong>{r.email || "—"}</strong></div>
+                    <div><span>Phone</span><strong>{r.phone || "—"}</strong></div>
+                    <div><span>Source</span><strong>{r.source || "—"}</strong></div>
+                    <div><span>Lead score</span><strong>{r.lead_score ?? "—"}</strong></div>
+                    <div><span>Traded F&amp;O</span><Answer value={r.traded_fno} /></div>
+                    <div><span>Tried funded</span><Answer value={r.tried_funded} /></div>
+                    <div><span>Easy navigation</span><Answer value={r.demo_easy_nav} /></div>
+                    <div><span>Feels live</span><Answer value={r.demo_feels_live} /></div>
+                    <div><span>Would pay after demo</span><Answer value={r.demo_would_pay} /></div>
+                    <div><span>Account type</span><strong>{r.account_type || "—"}</strong></div>
+                    {r.note && <div className="waitlist-person-note"><span>Note</span><strong>{r.note}</strong></div>}
+                  </div>
+                </details>
+              ))}
+            </div>
+          )}
+          {(page > 0 || hasNext) && (
+            <div className="waitlist-pagination">
+              <span>Showing {num(page * WAITLIST_PAGE_SIZE + 1)}–{num(page * WAITLIST_PAGE_SIZE + rows.length)}{total == null ? "" : ` of ${num(total)}`}</span>
+              <button className="btn" type="button" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Previous</button>
+              <button className="btn" type="button" disabled={!hasNext} onClick={() => setPage((p) => p + 1)}>Next</button>
+            </div>
+          )}
+        </>
+      )}
+    </Card>
+    </section>
+  );
+}
+
+function Answer({ value }) {
+  if (value == null) return "—";
+  return <Chip tone={value ? "green" : "grey"}>{value ? "Yes" : "No"}</Chip>;
 }
 
 function Row({ label, value, tone }) {

@@ -5,3 +5,4 @@ dist
 .env.example
 sql/
 *.sql
+!db/admin_waitlist_leads.sql
