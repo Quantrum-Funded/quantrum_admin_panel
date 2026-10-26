@@ -5,6 +5,7 @@
  */
 export {
   LayoutDashboard as IconGrid,
+  UsersRound as IconUsers,
   Activity as IconActivity,
   CandlestickChart as IconChart,
   Filter as IconFunnel,

@@ -313,6 +313,12 @@ code {
   color: var(--text-mute); font-size: 12px; padding: 14px 16px;
   border-top: 1px solid var(--border);
 }
+.waitlist-page { display: grid; gap: 16px; }
+.waitlist-filters { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
+.waitlist-filters label { display: grid; gap: 5px; min-width: 145px; color: var(--text-dim); font-size: 11.5px; font-weight: 600; }
+.waitlist-filters label:first-child { flex: 1 1 230px; }
+.waitlist-filters .input, .waitlist-filters .select { width: 100%; min-height: 37px; }
+.waitlist-filters .btn { min-height: 37px; }
 @media (max-width: 900px) {
   .waitlist-list-head { display: none; }
   .waitlist-person-summary {

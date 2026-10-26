@@ -32,7 +32,7 @@ few KB, self-contained, safe to re-run, and prints what it created:
 | `sql/02c_trading.sql` | Trading + Funnel pages |
 | `sql/04_user_filter.sql` | The user picker in the header, and `p_user_id` on the five reads |
 
-To show individual waitlist leads on Overview, run
+To show individual waitlist leads on Overview and the Waitlist tab, run
 `db/admin_waitlist_leads.sql` in the Supabase SQL Editor after those five files.
 It adds a read-only, admin-gated function for the `public.waitlist` table and
 can be safely run again. The Overview count still comes from `admin_overview`.
@@ -88,11 +88,16 @@ local `.env.example` are excluded from Git.
 | Page | What is on it |
 |---|---|
 | **Overview** | Total users, active today / this week / this month, trades today, revenue, waitlist count and leads, the sign-in and trading charts, live state, and the latest sign-ins |
+| **Waitlist** | Total people, recent additions, payment and trading intent, daily growth, interest and tier charts, and a searchable, filterable people list |
 | **Logins** | DAU / WAU / MAU, sign-ins per day, new accounts per day, and the full activity log |
 | **Trading** | Trades and P&L by day, top traders, most-traded contracts, why orders get rejected, open positions, latest orders |
 | **Funnel** | Signed up → came back → started demo → placed a trade → paid, plus provider / account-type / country splits |
 
-Three controls in the header apply to every page:
+The time range control also sets the Waitlist growth chart. The user and demo
+controls are hidden on Waitlist because its leads are separate from signed-in
+users and trading accounts.
+
+Three controls in the header apply to the other pages:
 
 - **All users** — the user picker. Leave it alone for platform totals, or pick
   somebody and every tile, chart and table narrows to them. See below.

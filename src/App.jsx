@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { supabase, configured, rpc } from "./supabase.js";
 import Login from "./components/Login.jsx";
 import {
-  IconGrid, IconActivity, IconChart, IconFunnel, IconRefresh, IconLogout,
+  IconGrid, IconUsers, IconActivity, IconChart, IconFunnel, IconRefresh, IconLogout,
 } from "./components/icons.jsx";
 import { Wordmark, LogoMark } from "./components/Logo.jsx";
 import { Segmented } from "./components/ui.jsx";
@@ -11,9 +11,11 @@ import Overview from "./pages/Overview.jsx";
 import Activity from "./pages/Activity.jsx";
 import Trading from "./pages/Trading.jsx";
 import Funnel from "./pages/Funnel.jsx";
+import Waitlist from "./pages/Waitlist.jsx";
 
 const PAGES = [
   { key: "overview", label: "Overview",  icon: IconGrid,     title: "Overview",            sub: "Everything at a glance" },
+  { key: "waitlist", label: "Waitlist",  icon: IconUsers,    title: "Waitlist",            sub: "Interest, intent and people" },
   { key: "activity", label: "Logins",    icon: IconActivity, title: "Logins & activity",   sub: "Who signed in, and when" },
   { key: "trading",  label: "Trading",   icon: IconChart,    title: "Trading",             sub: "Orders, P&L and live exposure" },
   { key: "funnel",   label: "Funnel",    icon: IconFunnel,   title: "Signup funnel",       sub: "Sign up to paid, step by step" },
@@ -215,16 +217,16 @@ export default function App() {
           </div>
           <div className="spacer" />
 
-          <UserFilter value={user} onChange={setUser} />
+          {page !== "waitlist" && <UserFilter value={user} onChange={setUser} />}
 
-          <label className="toggle" title="The demo seeds fabricated P&L days that nobody traded. Off by default.">
+          {page !== "waitlist" && <label className="toggle" title="The demo seeds fabricated P&L days that nobody traded. Off by default.">
             <input
               type="checkbox"
               checked={includeDemo}
               onChange={(e) => setIncludeDemo(e.target.checked)}
             />
             Include demo accounts
-          </label>
+          </label>}
 
           <Segmented
             value={days}
@@ -242,11 +244,12 @@ export default function App() {
         </header>
 
         <main className="content">
-          {user && (
+          {user && page !== "waitlist" && (
             <UserStrip user={user} refreshKey={refreshKey} onClear={() => setUser(null)} />
           )}
 
           {page === "overview" && <Overview {...shared} />}
+          {page === "waitlist" && <Waitlist days={days} refreshKey={refreshKey} />}
           {page === "activity" && <Activity {...shared} />}
           {page === "trading"  && <Trading {...shared} />}
           {page === "funnel"   && <Funnel {...shared} />}
